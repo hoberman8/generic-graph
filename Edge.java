@@ -4,13 +4,20 @@ public class Edge<T>
 {
     private Vertex from;
     private Vertex to;
-    private int data;
+    private T data;
+    private float weight;
     
-    public Edge(Vertex start, Vertex end, int data)
+    public Edge(Vertex start, Vertex end, T data)
     {
         this.from = start;
         this.to = end;
         this.data = data;
+    }
+    public Edge(Vertex start, Vertex end, float distance)
+    {
+        this.from = start;
+        this.to = end;
+        this.weight = distance;
     }
     public Vertex getStart()
     {
@@ -20,9 +27,13 @@ public class Edge<T>
     {
         return this.to;
     }
-    public int getData()
+    public T getData()
     {
         return this.data;
+    }
+    public float getWeight()
+    {
+        return this.weight;
     }
     public int getStartID()
     {

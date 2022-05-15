@@ -5,8 +5,9 @@ public class Vertex<T>
 
   private int vertexId;
   private T vertexData;
+  private String data;
   private boolean visited;
-  private int distFromSource = Integer.MAX_VALUE;
+  private float distFromSource = Float.MAX_VALUE;
   private ArrayList<Edge> edges = new ArrayList<Edge>();
   
   public Vertex(T vertexInfo, int id)
@@ -16,7 +17,14 @@ public class Vertex<T>
       vertexData = vertexInfo;
     }
   
-  //setters and getters for vertex datatypes
+
+    public Vertex(String street, int id)
+    //setters and 
+    {
+      data = street;
+      vertexId = id;
+    }
+
   
     public T getvertexData()
     {
@@ -32,11 +40,11 @@ public class Vertex<T>
       String s = "Vertex ID: V" + vertexId;
       return s;
     }
-    public int getDistFromSource()
+    public float getDistFromSource()
     {
       return this.distFromSource;
     }
-    public void setDistFromSource(int distFromSourcePass)
+    public void setDistFromSource(float distFromSourcePass)
     {
       this.distFromSource = distFromSourcePass;
     }
