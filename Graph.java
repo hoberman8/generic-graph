@@ -1,13 +1,11 @@
-package problem;
-import problem.Vertex;
-import problem.Edge;
+package graphSupport;
 import java.util.ArrayList;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Scanner;
 import java.util.List;
 import java.nio.*;
-import support.stacks.*;
+//Used this source for helping in shortest path algorithm https://ssaurel.medium.com/calculate-shortest-paths-in-java-by-implementing-dijkstras-algorithm-5c1db06b6541
 public class Graph<T> implements GraphInterface<T>
 {
     public static final int NULL_EDGE = 0;
@@ -37,10 +35,30 @@ public class Graph<T> implements GraphInterface<T>
             directed = false;
         }
     }
+    //second constrcutor that allows user to pass vertex and edge files to create the graph all at once
+    public Graph(boolean direct, String im, String im2) throws IOException
+    {
+        adjList = new ArrayList<ArrayList<Vertex>>();
+        for (int i=0; i < DEFCAP; i++)
+        {
+            adjList.add(new ArrayList<Vertex>());
+        }
+        if (direct == true)
+        {
+            directed = true;
+        }
+        else
+        {
+            directed = false;
+        }
+        String file1 = im;
+        String file2 = im2;
+        input(file1,file2);
+    }
     //Checks vertices amount to see if graph is empty
     public boolean isEmpty()
     {
-        if (vertices.length == 0)
+        if (vertices[0] == null)
         {
             return true;
         }
@@ -50,7 +68,7 @@ public class Graph<T> implements GraphInterface<T>
         }
     }
     //creates vertex object, puts it in the array containing all vertices, increments vertex count, and returns the object created.
-    public Vertex addVertex(String vertex, int vertexID)
+    public Vertex addVertex(T vertex, int vertexID)
     {
         Vertex addition = new Vertex(vertex, vertexID);
         vertices[vertexID] = addition;
@@ -60,7 +78,7 @@ public class Graph<T> implements GraphInterface<T>
     //when passed a vertexID it checks to  see if it has been created yet
     public boolean hasVertex(int vertexID)
     {
-        for(int i=0;i < vertices.length; i++)
+        for(int i=0;i < numVertices; i++)
         {
             if(vertices[i].getvertexId() == vertexID)
             {
@@ -69,8 +87,10 @@ public class Graph<T> implements GraphInterface<T>
         }
         return false;
     }
-    public void addEdge(int fromID, int toID, float data)
+    public void addEdge(int id, int fromID, int toID, T data, float weight)
     {
+        float w = weight;
+        T d = (T) data;
         //grabs vertex objects
         Vertex add1 = vertices[fromID];
         Vertex add2 = vertices[toID];
@@ -89,7 +109,7 @@ public class Graph<T> implements GraphInterface<T>
         //adds vertex to the other vertices adjacency list
         adjList.get(location).add(add2);
         //creates edge object
-        Edge obj = new Edge(add1,add2,data);
+        Edge obj = new Edge(id,add1,add2,d,w);
         //if graph is undirected, adds to other vertices adjacency list as well
         if (directed == false)
         {
@@ -253,34 +273,42 @@ public class Graph<T> implements GraphInterface<T>
 
 
 
-
+    //same as other calculate but counts vertices traveled rather than weight
     public void calculateShortestUnweighted(int location)
     {
         int next = location;
+        //set all vertices to unvisited
         for(int k=0; k < numVertices; k++)
         {
             vertices[k].setVisited(false);
         }
+        //set source to be 0 away from itself
         this.vertices[next].setDistFromSource(0);
         for (int i=0; i< numVertices; i++)
         {
+            //get edges for vertex
             ArrayList<Edge> curr = this.vertices[next].getEdges();
             for (int j=0; j < curr.size(); j++)
             {
+                //get other side of edge
                 int neigh = curr.get(j).getNeighborID(next);
                 if (!this.vertices[neigh].isVisited())
                 {
+                    //get distance from source to be current + 1 for the next vertex traveled
                     float temp = this.vertices[next].getDistFromSource() + 1;
+                    //if less than the distance, set as the distance
                     if (temp < vertices[neigh].getDistFromSource())
                     {
                         vertices[neigh].setDistFromSource(temp);
                     }
                 }
             }
+            //mark vertex as visited
         vertices[next].setVisited(true);
+        //find next vertex to check
         next = getNodeShortestDist();
         }
-
+        //print shortest distance to every other node
         for(int i=0; i < numVertices; i ++)
         {
             System.out.println("Shortest dist from node " + location +  " to node " + i + " is " + vertices[i].getDistFromSource());
@@ -289,6 +317,7 @@ public class Graph<T> implements GraphInterface<T>
     public void printShortestUnweighted(int start, int destination)
     {
         try {
+            //if no adjacent vertices then the vertex is unaccesible
         if (adjList.get(start).isEmpty())
         {
             System.out.println("This vertex is not accesible");
@@ -299,6 +328,7 @@ public class Graph<T> implements GraphInterface<T>
         int begin = start;
         float dist;
         int check;
+        //mark all as unvisited
         for(int i=0; i < numVertices; i++)
         {
             vertices[i].setVisited(false);
@@ -307,13 +337,16 @@ public class Graph<T> implements GraphInterface<T>
         track2.add(begin);
         while(begin != destination)
         {
+            //get vertices edges
             ArrayList<Edge> temp = vertices[begin].getEdges();
             float min = Float.MAX_VALUE;
             for (int k=0; k < temp.size();k++)
             {
+                //get next vertex id to check
                 check = temp.get(k).getNeighborID(begin);
                 if (!vertices[check].isVisited())
                 {
+                    //if next vertex is closer, save the index and start again
                 min = vertices[begin].getDistFromSource();
                 dist = vertices[check].getDistFromSource();
                 if (dist < min)
@@ -321,9 +354,11 @@ public class Graph<T> implements GraphInterface<T>
                     min = dist;
                     begin = temp.get(k).getNeighborID(begin);
                 }
+                //set as visited
                 vertices[check].setVisited(true);
                 }
             }
+            //add vertex id to path
             track2.add(begin);
         }
         System.out.println(track2);
@@ -333,60 +368,69 @@ public class Graph<T> implements GraphInterface<T>
         System.err.println("No path possible.");
     }
     }
+    //reset each vertices distance from source before calculating another
     public void resetDistance()
     {
         for(int l =0 ; l < numVertices; l++)
         {
-            vertices[l].setDistFromSource(Integer.MAX_VALUE);
+            vertices[l].setDistFromSource(Float.MAX_VALUE);
         }
     }
 
+    //outputs the vertex and edge data to a csv file 
     public void output() throws IOException
     {
-        BufferedWriter writer = new BufferedWriter(new FileWriter ("vertices.csv"));
+        BufferedWriter writer = new BufferedWriter(new FileWriter ("VerticesOutput.csv"));
       
         for (int i=0; i< numVertices; i++)
         {
-            writer.write(vertices[i].getvertexId() + "," + vertices[i].getvertexData());
+            //write all vertex fields then go to next line for next vertex
+            writer.write(vertices[i].getvertexData() + "," + vertices[i].getvertexId());
             writer.newLine();
            
         }
         writer.close();
 
-        BufferedWriter w = new BufferedWriter(new FileWriter("edges.csv"));
+        BufferedWriter w = new BufferedWriter(new FileWriter("EdgesOutput.csv"));
         for(int j=0; j < edgeCount; j++)
         {
-            w.write(edges[j].getStartID() + "," + edges[j].getEndID() + "," + edges[j].getData());
+            //write all edge fiels then go to next line for next edge
+            w.write(edges[j].getEdgeID() + "," + edges[j].getStartID() + "," + edges[j].getEndID() + "," + edges[j].getData() + "," + edges[j].getWeight());
             w.newLine();
         }
         w.close();
     }
-
-    public void input() throws IOException
+    //takes two files in argument to read in
+    public void input(String file1, String file2) throws IOException
     {
-        String[] store = new String[50];
-        BufferedReader read = new BufferedReader(new FileReader("vertices.csv"));
+        String[] store = new String[5];
+        BufferedReader read = new BufferedReader(new FileReader(file1));
         String line = "";
+        //while there is text on the line
         while((line = read.readLine())!= null)
         {
+            //split the data and read it all in to vertex object
             store = line.split(",");
-            String street = store[0];
+            T data = (T) store[0];
             int id = Integer.parseInt(store[1]);
-            addVertex(street,id);
+            addVertex(data,id);
         }
         read.close();
 
 
-        String[] store2 = new String[50];
-        BufferedReader read2 = new BufferedReader(new FileReader("edges.csv"));
+        String[] store2 = new String[10];
+        BufferedReader read2 = new BufferedReader(new FileReader(file2));
         String line2 = "";
         while((line2 = read2.readLine())!= null)
         {
+            //split the data and read it all in to a edge object
             store2 = line2.split(",");
-            int fromid = Integer.parseInt(store2[0]);
-            int toid = Integer.parseInt(store2[1]);
-            float weight = Float.parseFloat(store2[2]);
-            addEdge(fromid,toid,weight);
+            int id = Integer.parseInt(store2[0]);
+            int fromid = Integer.parseInt(store2[1]);
+            int toid = Integer.parseInt(store2[2]);
+            T data = (T) store2[3];
+            float weight = Float.parseFloat(store2[4]);
+            addEdge(id,fromid,toid,data,weight);
         }
         read2.close();
     }
