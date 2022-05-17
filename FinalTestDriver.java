@@ -1,39 +1,28 @@
-import problem.Graph;
+package testDriver;
+import graphSupport.Graph;
+
+import java.io.IOException;
+import java.util.Scanner;
 public class FinalTestDriver
 {
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
     {
-        Graph gr = new Graph(false);
-        gr.addVertex(0,0);
-        gr.addVertex(0,1);
-        gr.addVertex(0,2);
-        gr.addVertex(0,3);
-        gr.addVertex(0,4);
-        gr.addVertex(0,5);
-        gr.addVertex(0,6);
-        gr.addVertex(0,7);
-        gr.addVertex(0,8);
-        gr.addVertex(0,9);
-        gr.addVertex(0,10);
-        gr.addEdge(0,1,2);
-        gr.addEdge(0,2,1);
-        gr.addEdge(1,3,2);
-        gr.addEdge(2,5,10);
-        gr.addEdge(3,5,8);
-        gr.addEdge(8,4,2);
-        gr.addEdge(4,5,7);
-        gr.addEdge(5,6,1);
-        gr.addEdge(6,9,3);
-        gr.addEdge(9,8,7);
-        gr.addEdge(7,9,2);
-        gr.addEdge(9,10,5);
+        String file1 = "TestVerticesInput.csv";
+        String file2 = "TestEdgesInput.csv";
+        Graph gr = new Graph<String>(false, file1, file2);
+        System.out.println("Is the graph empty? Expects false");
+        System.out.println(gr.isEmpty());
+        System.out.println("Does graph have a vertex with ID 5? Expects false: " +  gr.hasVertex(5));
+        System.out.println("Printing graph (vertices and their adjacent vertices)");
         gr.printGraph();
-        gr.calculateShortestUnweighted(10);
-        gr.printShortestUnweighted(4,10);
+        System.out.println("Calculating shortest path from vertex 0 to vertex 3 using least amount of vertices");
+        gr.calculateShortestUnweighted(3);
+        gr.printShortestUnweighted(0,3);
         gr.resetDistance();
-        gr.calculateShortest(10);
-        gr.printShortestPath(4,10);
-        System.out.println();
-
+        System.out.println("Calculating shortest path from vertex 0 to vertex 3 using lowest weight total");
+        gr.calculateShortest(3);
+        gr.printShortestPath(0,3);
+        gr.output();
+        System.out.println("Graph is now put back into two csvs files");
     }
 }
